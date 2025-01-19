@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
-import { Search, SquarePen } from "lucide-react";
+import { Search, SquarePen, Upload } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,13 +18,20 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { createBlog } from "@/actions/serverations";
+import { useRouter } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 interface HeaderProps {
   onFilterChange: (filter: "all" | "liked" | "bookmarked") => void;
   onSearch: (query: string) => void;
+  onBlogCreated?: () => void; // Add this prop
 }
 
-export default function Header({ onFilterChange, onSearch }: HeaderProps) {
+export default function Header({
+  onFilterChange,
+  onSearch,
+  onBlogCreated,
+}: HeaderProps) {
   const { data: session } = useSession();
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateBlogOpen, setIsCreateBlogOpen] = useState(false);
@@ -32,7 +39,9 @@ export default function Header({ onFilterChange, onSearch }: HeaderProps) {
     title: "",
     description: "",
     category: "Uncategorized",
+    image: "",
   });
+  const router = useRouter();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +60,20 @@ export default function Header({ onFilterChange, onSearch }: HeaderProps) {
     }));
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({
+          ...prev,
+          image: reader.result as string,
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!session?.user?.id) {
@@ -58,16 +81,23 @@ export default function Header({ onFilterChange, onSearch }: HeaderProps) {
       return;
     }
     try {
-      await createBlog({
+      const newBlog = await createBlog({
         ...formData,
         authorId: session.user.id,
       });
+
       setIsCreateBlogOpen(false);
-      setFormData({ title: "", description: "", category: "Uncategorized" });
-      // You may want to add some feedback to the user here, like a toast notification
+      setFormData({
+        title: "",
+        description: "",
+        category: "Uncategorized",
+        image: "",
+      });
+
+      // Call the callback with the new blog data
+      onBlogCreated?.();
     } catch (error) {
       console.error("Error creating blog:", error);
-      // You may want to show an error message to the user here
     }
   };
 
@@ -79,18 +109,24 @@ export default function Header({ onFilterChange, onSearch }: HeaderProps) {
             <span className="font-bold">BlogVerse</span>
           </Link>
           <nav className="hidden md:flex items-center space-x-4 text-sm font-medium">
-            <NavLink href="/" onClick={() => onFilterChange("all")}>
+            <button
+              onClick={() => onFilterChange("all")}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
               Home
-            </NavLink>
-            <NavLink href="/like" onClick={() => onFilterChange("liked")}>
+            </button>
+            <button
+              onClick={() => onFilterChange("liked")}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
               Like
-            </NavLink>
-            <NavLink
-              href="/bookmarks"
+            </button>
+            <button
               onClick={() => onFilterChange("bookmarked")}
+              className="text-muted-foreground hover:text-foreground transition-colors"
             >
               Bookmarks
-            </NavLink>
+            </button>
           </nav>
         </div>
         <div className="flex items-center space-x-4">
@@ -105,6 +141,7 @@ export default function Header({ onFilterChange, onSearch }: HeaderProps) {
             formData={formData}
             handleChange={handleChange}
             handleSubmit={handleSubmit}
+            handleImageUpload={handleImageUpload}
           />
           <UserAvatar session={session} />
         </div>
@@ -164,16 +201,23 @@ function CreateBlogDialog({
   formData,
   handleChange,
   handleSubmit,
+  handleImageUpload,
 }: {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  formData: { title: string; description: string; category: string };
+  formData: {
+    title: string;
+    description: string;
+    category: string;
+    image: string;
+  };
   handleChange: (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => void;
   handleSubmit: (e: React.FormEvent) => void;
+  handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -234,6 +278,28 @@ function CreateBlogDialog({
               <option value="Food">Food</option>
               <option value="Sports">Sports</option>
             </select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="image" className="text-sm font-medium">
+              Image
+            </Label>
+            <div className="flex items-center space-x-2">
+              <Input
+                id="image"
+                name="image"
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="w-full rounded-lg border border-input bg-transparent"
+              />
+              {formData.image && (
+                <img
+                  src={formData.image || "/placeholder.svg"}
+                  alt="Preview"
+                  className="h-10 w-10 object-cover rounded"
+                />
+              )}
+            </div>
           </div>
           <DialogFooter>
             <Button type="submit" className="w-full">

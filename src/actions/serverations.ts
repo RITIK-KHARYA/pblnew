@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "./session";
 import { z } from "zod";
+import { revalidatePath } from "next/cache";
 
 const createBlogSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters long"),
@@ -80,9 +81,13 @@ export async function toggleLike(blogId: string) {
   if (existingLike) {
     await prisma.like.delete({
       where: {
-        id: existingLike.id,
+        blogId_userId: {
+          blogId,
+          userId: session.user.id,
+        },
       },
     });
+    revalidatePath("/");
     return false;
   }
 
@@ -92,9 +97,9 @@ export async function toggleLike(blogId: string) {
       userId: session.user.id,
     },
   });
+  revalidatePath("/");
   return true;
 }
-
 export async function toggleBookmark(blogId: string) {
   const session = await getSession();
 
@@ -114,9 +119,13 @@ export async function toggleBookmark(blogId: string) {
   if (existingBookmark) {
     await prisma.bookmark.delete({
       where: {
-        id: existingBookmark.id,
+        blogId_userId: {
+          blogId,
+          userId: session.user.id,
+        },
       },
     });
+    revalidatePath("/");
     return false;
   }
 
@@ -126,8 +135,12 @@ export async function toggleBookmark(blogId: string) {
       userId: session.user.id,
     },
   });
+  revalidatePath("/");
   return true;
 }
+
+// ... other imports remain the same
+
 export async function createBlog(data: unknown) {
   // Validate the input data
   const parsedData = createBlogSchema.safeParse(data);
@@ -137,7 +150,6 @@ export async function createBlog(data: unknown) {
 
   const { title, description, image, category, authorId } = parsedData.data;
 
-  // Create the new blog entry in the database
   try {
     const newBlog = await prisma.blog.create({
       data: {
@@ -149,9 +161,12 @@ export async function createBlog(data: unknown) {
           connect: { id: authorId },
         },
         createdAt: new Date(),
-        readTime: "5 min", // Ensure readTime is included
+        readTime: "5 min",
       },
     });
+
+    // Add revalidation here after successful creation
+    revalidatePath("/");
 
     return newBlog;
   } catch (error) {
