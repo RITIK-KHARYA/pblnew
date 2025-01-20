@@ -4,14 +4,14 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  images:{
-    remotePatterns:[
+  images: {
+    remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'utfs.io '
-      }
-    ]
-  }
+        protocol: "https",
+        hostname: "utfs.io", // Removed the trailing space
+      },
+    ],
+  },
 };
 
 export default nextConfig;

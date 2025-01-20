@@ -118,7 +118,7 @@ export default function Index() {
     () => ["Technology", "Health", "Food", "Sports"],
     []
   );  const handleBlogCreated = useCallback(() => {
-    fetchBlogs(); // Re-fetch blogs when a new one is created
+    fetchBlogs(); 
   }, [fetchBlogs]);
 
 
@@ -134,7 +134,7 @@ export default function Index() {
         <section className="space-y-8">
           <div className="text-center space-y-2">
             <h1 className="text-4xl font-serif font-bold">
-              Welcome to BlogVerse
+              Welcome to Scrible
             </h1>
             <p className="text-muted-foreground">
               Discover stories, thinking, and expertise from writers on any
@@ -167,14 +167,15 @@ export default function Index() {
               {filteredArticles.map((article) => (
                 <ArticleCard
                   key={article.id}
+                  id={article.id}
                   title={article.title}
                   excerpt={article.description.slice(0, 100) + "..."}
                   category={article.category}
                   readTime={article.readTime}
-                  image={article.image}
+                  image={article.image ?? " "}
                   author={{
                     name: article.author.name,
-                    avatar: article.author.avatar,
+                    Avatar: article.author.avatar,
                     date: new Date(article.createdAt).toLocaleDateString(),
                   }}
                   isLiked={article.likes.some(

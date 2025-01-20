@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useSession } from "@/lib/auth-client";
-import { Search, SquarePen } from "lucide-react";
+import { signOut, useSession } from "@/lib/auth-client";
+import { LogOut, Search, SquarePen } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -99,7 +99,7 @@ export default function Header({
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
         <div className="flex items-center space-x-5">
           <Link href="/" className="flex items-center">
-            <span className="font-bold">BlogVerse</span>
+            <span className="font-bold">Scrible</span>
           </Link>
           <nav className="hidden md:flex items-center space-x-4 text-sm font-medium">
             <button
@@ -299,15 +299,26 @@ function CreateBlogDialog({
 }
 
 function UserAvatar({ session }: { session: any }) {
+  const router = useRouter()
   return (
-    <Avatar>
-      <AvatarImage
-        src={session?.user?.image ?? "https://github.com/shadcn.png"}
-        alt={session?.user?.name ?? "User avatar"}
-      />
-      <AvatarFallback>
-        {session?.user?.name ? session.user.name.charAt(0).toUpperCase() : "U"}
-      </AvatarFallback>
-    </Avatar>
+    <div className="flex gap-2 ">
+      <Avatar>
+        <AvatarImage
+          src={session?.user?.image ?? "https://github.com/shadcn.png"}
+          alt={session?.user?.name ?? "User avatar"}
+        />
+        <AvatarFallback>
+          {session?.user?.name
+            ? session.user.name.charAt(0).toUpperCase()
+            : "U"}
+        </AvatarFallback>
+      </Avatar>
+      <button className="bg-red-600 border p-1 w-10 rounded-md text-gray-100" onClick={async() => {
+        await signOut()
+        router.refresh()
+        }}>
+          <LogOut size={18} className="text-gray-200 text-center mx-auto" />
+        </button>
+    </div>
   );
 }

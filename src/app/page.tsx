@@ -80,7 +80,8 @@ export default function Landing() {
               Where ideas come to life and stories unfold. Join our community of
               passionate writers and readers.
             </p>
-            <Button className="bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-500 hover:to-blue-700 text-white text-lg py-6 px-8 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-blue-500/50 group">
+            <Button className="bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-500 hover:to-blue-700 text-white text-lg py-6 px-8 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-blue-500/50 group"
+            onClick={()=>router.push("/home")}>
               Start Writing
               <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>

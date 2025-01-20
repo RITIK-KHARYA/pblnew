@@ -37,6 +37,7 @@ export default function Index() {
     setIsLoading(true);
     try {
       const data = await getBlogs(filter);
+
       setBlogs(data);
     } catch (error) {
       console.error("Failed to fetch blogs:", error);
@@ -49,6 +50,10 @@ export default function Index() {
       fetchBlogs();
     }
   }, [fetchBlogs, session]);
+
+  useEffect(() => {
+    console.log(blogs, "heurgeurgeiaof");
+  }, []);
 
   const filteredBlogs = optimisticBlogs.filter((blog) => {
     if (selectedCategory && blog.category !== selectedCategory) return false;
@@ -64,27 +69,31 @@ export default function Index() {
   });
 
   const handleLike = async (blogId: string) => {
+    // Early return if no session
+    if (!session?.user?.id) return;
+
     const blogToUpdate = blogs.find((blog) => blog.id === blogId);
     if (!blogToUpdate) return;
 
     const isCurrentlyLiked = blogToUpdate.likes.some(
-      (like) => like.userId === session?.user.id
+      (like) => like.userId === session.user.id
     );
+
     const optimisticBlog = {
       ...blogToUpdate,
       likes: isCurrentlyLiked
-        ? blogToUpdate.likes.filter((like) => like.userId !== session?.user.id)
-        : [...blogToUpdate.likes, { userId: session?.user.id }],
+        ? blogToUpdate.likes.filter((like) => like.userId !== session.user.id)
+        : [...blogToUpdate.likes, { userId: session.user.id }],
     };
 
     addOptimisticBlog(optimisticBlog);
 
     try {
       await toggleLike(blogId);
-      fetchBlogs(); // Refresh the blogs to get the updated state from the server
+      fetchBlogs();
     } catch (error) {
       console.error("Failed to toggle like:", error);
-      fetchBlogs(); // Refresh the blogs to revert to the correct state
+      fetchBlogs();
     }
   };
 
@@ -95,14 +104,14 @@ export default function Index() {
     const isCurrentlyBookmarked = blogToUpdate.bookmarks.some(
       (bookmark) => bookmark.userId === session?.user.id
     );
-   const optimisticBlog = {
-     ...blogToUpdate,
-     bookmarks: isCurrentlyBookmarked
-       ? blogToUpdate.bookmarks.filter(
-           (bookmark) => bookmark.userId !== session?.user.id
-         )
-       : [...blogToUpdate.bookmarks, { userId: session?.user.id ?? "" }],
-   };
+    const optimisticBlog = {
+      ...blogToUpdate,
+      bookmarks: isCurrentlyBookmarked
+        ? blogToUpdate.bookmarks.filter(
+            (bookmark) => bookmark.userId !== session?.user.id
+          )
+        : [...blogToUpdate.bookmarks, { userId: session?.user.id ?? "" }],
+    };
 
     addOptimisticBlog(optimisticBlog);
 
@@ -126,7 +135,7 @@ export default function Index() {
         <section className="space-y-8">
           <div className="text-center space-y-2">
             <h1 className="text-4xl font-serif font-bold">
-              Welcome to BlogVerse
+              Welcome to Scrible
             </h1>
             <p className="text-muted-foreground">
               Discover stories, thinking, and expertise from writers on any
@@ -151,10 +160,12 @@ export default function Index() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredBlogs.map((blog) => (
+              {/* {filteredBlogs.map((blog) => (
                 <ArticleCard
-                  key={blog.id}
-                  {...blog}
+                  id={blog.id}
+                  title={blog.title}
+                  description={blog.description}
+                  category={blog.category}
                   isLiked={blog.likes.some(
                     (like) => like.userId === session?.user.id
                   )}
@@ -164,7 +175,7 @@ export default function Index() {
                   onLike={() => handleLike(blog.id)}
                   onBookmark={() => handleBookmark(blog.id)}
                 />
-              ))}
+              ))} */}
             </div>
           )}
         </section>

@@ -174,3 +174,12 @@ export async function createBlog(data: unknown) {
     throw new Error("Failed to create the blog. Please try again later.");
   }
 }
+export const getBlogById = async (blogId: string) => {
+  const session = await getSession();
+
+  if (!session) {
+    throw new Error("Unauthorized");
+  }
+  const blog = await prisma.blog.findUnique({ where: { id: blogId },include: { author: true, likes: true, bookmarks: true } });
+  return blog;
+};
