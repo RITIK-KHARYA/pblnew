@@ -43,12 +43,10 @@ export default function ArticleCard({
   return (
     <Card className={`overflow-hidden ${featured ? "border-primary" : ""}`}>
       <div className="relative aspect-video">
-        <Image
+        <img
           src={image || "/placeholder.svg"}
           alt={title}
-          layout="fill"
-          objectFit="cover"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          className="w-full h-full object-cover"
         />
         <div className="absolute top-2 left-2 bg-primary text-primary-foreground px-2 py-1 text-xs rounded">
           {category}

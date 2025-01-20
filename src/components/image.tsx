@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
+import Upload from "./uplaod-button"
 
 export function SignUp() {
   const [image, setImage] = useState<File | null>(null);
@@ -18,14 +19,6 @@ export function SignUp() {
       reader.readAsDataURL(file);
     }
   };
-  async function convertImageToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
   return (
     <div>
       <div className="grid gap-2">
@@ -42,13 +35,7 @@ export function SignUp() {
             </div>
           )}
           <div className="flex items-center gap-2 w-full">
-            <Input
-              id="image"
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="w-full"
-            />
+
             {imagePreview && (
               <X
                 className="cursor-pointer"

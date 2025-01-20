@@ -1,37 +1,56 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useOptimistic } from "react";
 import Header from "@/components/Header";
 import ArticleCard from "@/components/ArticleCard";
 import { getBlogs, toggleLike, toggleBookmark } from "@/actions/serverations";
 import { useSession } from "@/lib/auth-client";
+
+interface Blog {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  author: {
+    name: string;
+  };
+  likes: { userId: string }[];
+  bookmarks: { userId: string }[];
+}
 
 export default function Index() {
   const { data: session } = useSession();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "liked" | "bookmarked">("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [blogs, setBlogs] = useState<any[]>([]);
+  const [blogs, setBlogs] = useState<Blog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchBlogs() {
-      setIsLoading(true);
-      try {
-        const data = await getBlogs(filter);
-        setBlogs(data);
-      } catch (error) {
-        console.error("Failed to fetch blogs:", error);
-      }
-      setIsLoading(false);
-    }
+  const [optimisticBlogs, addOptimisticBlog] = useOptimistic(
+    blogs,
+    (state, updatedBlog: Blog) =>
+      state.map((blog) => (blog.id === updatedBlog.id ? updatedBlog : blog))
+  );
 
+  const fetchBlogs = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await getBlogs(filter);
+      setBlogs(data);
+    } catch (error) {
+      console.error("Failed to fetch blogs:", error);
+    }
+    setIsLoading(false);
+  }, [filter]);
+
+  useEffect(() => {
     if (session) {
       fetchBlogs();
     }
-  }, [filter, session]);
+  }, [fetchBlogs, session]);
 
-  const filteredBlogs = blogs.filter((blog) => {
+  const filteredBlogs = optimisticBlogs.filter((blog) => {
     if (selectedCategory && blog.category !== selectedCategory) return false;
     if (!searchQuery) return true;
 
@@ -45,40 +64,54 @@ export default function Index() {
   });
 
   const handleLike = async (blogId: string) => {
+    const blogToUpdate = blogs.find((blog) => blog.id === blogId);
+    if (!blogToUpdate) return;
+
+    const isCurrentlyLiked = blogToUpdate.likes.some(
+      (like) => like.userId === session?.user.id
+    );
+    const optimisticBlog = {
+      ...blogToUpdate,
+      likes: isCurrentlyLiked
+        ? blogToUpdate.likes.filter((like) => like.userId !== session?.user.id)
+        : [...blogToUpdate.likes, { userId: session?.user.id }],
+    };
+
+    addOptimisticBlog(optimisticBlog);
+
     try {
-      const isLiked = await toggleLike(blogId);
-      setBlogs(
-        blogs.map((blog) => {
-          if (blog.id === blogId) {
-            return {
-              ...blog,
-              likes: isLiked ? [{ userId: session?.user.id }] : [],
-            };
-          }
-          return blog;
-        })
-      );
+      await toggleLike(blogId);
+      fetchBlogs(); // Refresh the blogs to get the updated state from the server
     } catch (error) {
       console.error("Failed to toggle like:", error);
+      fetchBlogs(); // Refresh the blogs to revert to the correct state
     }
   };
 
   const handleBookmark = async (blogId: string) => {
+    const blogToUpdate = blogs.find((blog) => blog.id === blogId);
+    if (!blogToUpdate) return;
+
+    const isCurrentlyBookmarked = blogToUpdate.bookmarks.some(
+      (bookmark) => bookmark.userId === session?.user.id
+    );
+   const optimisticBlog = {
+     ...blogToUpdate,
+     bookmarks: isCurrentlyBookmarked
+       ? blogToUpdate.bookmarks.filter(
+           (bookmark) => bookmark.userId !== session?.user.id
+         )
+       : [...blogToUpdate.bookmarks, { userId: session?.user.id ?? "" }],
+   };
+
+    addOptimisticBlog(optimisticBlog);
+
     try {
-      const isBookmarked = await toggleBookmark(blogId);
-      setBlogs(
-        blogs.map((blog) => {
-          if (blog.id === blogId) {
-            return {
-              ...blog,
-              bookmarks: isBookmarked ? [{ userId: session?.user.id }] : [],
-            };
-          }
-          return blog;
-        })
-      );
+      await toggleBookmark(blogId);
+      fetchBlogs(); // Refresh the blogs to get the updated state from the server
     } catch (error) {
       console.error("Failed to toggle bookmark:", error);
+      fetchBlogs(); // Refresh the blogs to revert to the correct state
     }
   };
 
@@ -122,8 +155,12 @@ export default function Index() {
                 <ArticleCard
                   key={blog.id}
                   {...blog}
-                  isLiked={blog.likes.length > 0}
-                  isBookmarked={blog.bookmarks.length > 0}
+                  isLiked={blog.likes.some(
+                    (like) => like.userId === session?.user.id
+                  )}
+                  isBookmarked={blog.bookmarks.some(
+                    (bookmark) => bookmark.userId === session?.user.id
+                  )}
                   onLike={() => handleLike(blog.id)}
                   onBookmark={() => handleBookmark(blog.id)}
                 />

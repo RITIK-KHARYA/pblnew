@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import "./globals.css";
+import { extractRouterConfig } from "uploadthing/server";
+import { ourFileRouter } from "./api/uploadthing/core";
+import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -19,6 +22,10 @@ export default function RootLayout({
         className={`${GeistSans.variable} ${GeistMono.variable} font-sans antialiased`}
         suppressHydrationWarning
       >
+        <NextSSRPlugin
+         
+          routerConfig={extractRouterConfig(ourFileRouter)}
+        />
         {children}
       </body>
     </html>

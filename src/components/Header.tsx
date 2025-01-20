@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
-import { Search, SquarePen, Upload } from "lucide-react";
+import { Search, SquarePen } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { createBlog } from "@/actions/serverations";
 import { useRouter } from "next/navigation";
-import { revalidatePath } from "next/cache";
+import Upload from "./uplaod-button";
 
 interface HeaderProps {
   onFilterChange: (filter: "all" | "liked" | "bookmarked") => void;
@@ -60,18 +60,11 @@ export default function Header({
     }));
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData((prev) => ({
-          ...prev,
-          image: reader.result as string,
-        }));
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleImageUpload = (url: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      image: url,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -217,7 +210,7 @@ function CreateBlogDialog({
     >
   ) => void;
   handleSubmit: (e: React.FormEvent) => void;
-  handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleImageUpload: (url:string) => void;
 }) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -284,14 +277,7 @@ function CreateBlogDialog({
               Image
             </Label>
             <div className="flex items-center space-x-2">
-              <Input
-                id="image"
-                name="image"
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="w-full rounded-lg border border-input bg-transparent"
-              />
+              <Upload onChange={handleImageUpload} />
               {formData.image && (
                 <img
                   src={formData.image || "/placeholder.svg"}
