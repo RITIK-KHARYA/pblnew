@@ -1,10 +1,14 @@
 import Image from "next/image";
 import { Bookmark, Heart, MoreHorizontal, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getBlogById, getBlogs, toggleBookmark, toggleLike } from "@/actions/serverations";
+import {
+  getBlogById,
+  getBlogs,
+  toggleBookmark,
+  toggleLike,
+} from "@/actions/serverations";
 import { getSession } from "@/actions/session";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
 
 interface BlogDetailProps {
   params: {
@@ -15,9 +19,9 @@ interface BlogDetailProps {
 export default async function BlogDetail({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }) {
-  const blogId = (await params).id
+  const blogId = (await params).id;
   const blog = await getBlogById(blogId);
 
   const session = await getSession();
@@ -37,8 +41,6 @@ export default async function BlogDetail({
         <h1 className="text-4xl md:text-5xl font-serif font-bold tracking-tight">
           {blog.title}
         </h1>
-
-        <p className="text-xl text-muted-foreground">{blog.description}</p>
 
         <div className="flex items-center justify-between py-4 border-y">
           <div className="flex items-center gap-3">
@@ -79,12 +81,12 @@ export default async function BlogDetail({
                 />
               </Button>
             </form>
-            <Button variant="ghost" size="icon">
+            {/* <Button variant="ghost" size="icon">
               <MessageCircle className="w-5 h-5" />
             </Button>
             <Button variant="ghost" size="icon">
               <MoreHorizontal className="w-5 h-5" />
-            </Button>
+            </Button> */}
           </div>
         </div>
       </header>

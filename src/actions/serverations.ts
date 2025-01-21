@@ -180,6 +180,9 @@ export const getBlogById = async (blogId: string) => {
   if (!session) {
     throw new Error("Unauthorized");
   }
-  const blog = await prisma.blog.findUnique({ where: { id: blogId },include: { author: true, likes: true, bookmarks: true } });
+  const blog = await prisma.blog.findUnique({
+    where: { id: blogId },
+    include: { author: true, likes: true, bookmarks: true},
+  });
   return blog;
 };

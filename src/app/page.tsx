@@ -138,22 +138,20 @@ export default function Landing() {
               </AccordionItem>
               <AccordionItem value="item-2" className="border-blue-900/20">
                 <AccordionTrigger className="text-lg hover:text-blue-400 transition-colors">
-                  Will I have to pay for a custom domain name?
+                  Can we upload the images too?
                 </AccordionTrigger>
                 <AccordionContent className="text-gray-400">
-                  While we provide free subdomains, custom domain names are
-                  available as a paid feature. This gives you more professional
-                  branding and control over your blog's identity.
+                yes,we provide the user the option to attach the image 
+                there respective blog, to attain that feature we used uploadthing
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-3" className="border-blue-900/20">
                 <AccordionTrigger className="text-lg hover:text-blue-400 transition-colors">
-                  How do bloggers earn money?
+                  Can we bookmark the blogs? 
                 </AccordionTrigger>
                 <AccordionContent className="text-gray-400">
-                  Bloggers can earn through various methods including
-                  advertising, sponsored content, affiliate marketing, digital
-                  products, and premium subscriptions.
+                  Yes, the blogs comes with the feature of like ,
+                  and bookmark button which lets user to like & bookmark there blogs 
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
