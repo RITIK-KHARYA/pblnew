@@ -1,14 +1,15 @@
 import Image from "next/image";
-import { Bookmark, Heart, MoreHorizontal, MessageCircle } from "lucide-react";
+import { Bookmark, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   getBlogById,
-  getBlogs,
   toggleBookmark,
   toggleLike,
 } from "@/actions/serverations";
 import { getSession } from "@/actions/session";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import LikeButton from "./LIkebutton";
+import BookmarkButton from "./Bookmarkbutton";
 
 interface BlogDetailProps {
   params: {
@@ -23,7 +24,6 @@ export default async function BlogDetail({
 }) {
   const blogId = (await params).id;
   const blog = await getBlogById(blogId);
-
   const session = await getSession();
 
   if (!blog) {
@@ -59,34 +59,11 @@ export default async function BlogDetail({
           </div>
 
           <div className="flex items-center gap-4">
-            <form
-              action={async () => {
-                "use server";
-                await toggleLike(blog.id);
-              }}
-            >
-              <Button variant="ghost" size="icon" type="submit">
-                <Heart className={`w-5 h-5 ${isLiked ? "fill-primary" : ""}`} />
-              </Button>
-            </form>
-            <form
-              action={async () => {
-                "use server";
-                await toggleBookmark(blog.id);
-              }}
-            >
-              <Button variant="ghost" size="icon" type="submit">
-                <Bookmark
-                  className={`w-5 h-5 ${isBookmarked ? "fill-primary" : ""}`}
-                />
-              </Button>
-            </form>
-            {/* <Button variant="ghost" size="icon">
-              <MessageCircle className="w-5 h-5" />
-            </Button>
-            <Button variant="ghost" size="icon">
-              <MoreHorizontal className="w-5 h-5" />
-            </Button> */}
+            <LikeButton blogId={blog.id} initialIsLiked={isLiked} />
+            <BookmarkButton
+              blogId={blog.id}
+              initialIsBookmarked={isBookmarked}
+            />
           </div>
         </div>
       </header>
